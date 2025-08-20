@@ -1,109 +1,120 @@
 import uvicorn
-from fastapi import FastAPI
-from typing import List, Optional
+from fastapi import FastAPI, HTTPException
+from supabase import create_client, Client
+from dotenv import load_dotenv
+import os
 
+# Load env variables
+load_dotenv()
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 app = FastAPI()
 
-# Mock Data
-listings = [
-    {"id": 1, "title": "Handmade Ceramic Mug", "price": 18.99, "category": "Home"},
-    {"id": 2, "title": "Freelance Logo Design", "price": 75.0, "category": "Design"},
-]
-categories = ["Home", "Design", "Sports", "Digital"]
-reviews = []
-messages = []
-posts = []
-comments = []
-
-# Root
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Marketplace API with Supabase"}
 
-# Test
-@app.get("/items")
-async def read_items():
-    return {"item": "fun"}
-
-# Listings
+# -----------------------
+# LISTINGS
+# -----------------------
 @app.get("/listings")
 async def get_listings():
-    return listings
+    data = supabase.table("listings").select("*").execute()
+    return data.data
 
 @app.get("/listings/{listing_id}")
-async def get_listing(listing_id: int):
-    return next((l for l in listings if l["id"] == listing_id), {"error": "Not found"})
+async def get_listing(listing_id: str):
+    data = supabase.table("listings").select("*").eq("id", listing_id).execute()
+    if not data.data:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    return data.data[0]
 
 @app.post("/listings")
 async def create_listing(listing: dict):
-    listings.append(listing)
-    return listing
+    data = supabase.table("listings").insert(listing).execute()
+    return data.data
 
 @app.put("/listings/{listing_id}")
-async def update_listing(listing_id: int, updated: dict):
-    for i, l in enumerate(listings):
-        if l["id"] == listing_id:
-            listings[i].update(updated)
-            return listings[i]
-    return {"error": "Not found"}
+async def update_listing(listing_id: str, updates: dict):
+    data = supabase.table("listings").update(updates).eq("id", listing_id).execute()
+    return data.data
 
 @app.delete("/listings/{listing_id}")
-async def delete_listing(listing_id: int):
-    global listings
-    listings = [l for l in listings if l["id"] != listing_id]
-    return {"message": "Deleted"}
+async def delete_listing(listing_id: str):
+    supabase.table("listings").delete().eq("id", listing_id).execute()
+    return {"message": "Listing deleted"}
 
-# Categories
+# -----------------------
+# CATEGORIES
+# -----------------------
 @app.get("/categories")
 async def get_categories():
-    return categories
+    data = supabase.table("categories").select("*").execute()
+    return data.data
 
 @app.post("/categories")
-async def create_category(name: str):
-    categories.append(name)
-    return {"name": name}
+async def create_category(category: dict):
+    data = supabase.table("categories").insert(category).execute()
+    return data.data
 
-# Reviews
+# -----------------------
+# REVIEWS
+# -----------------------
 @app.get("/listings/{listing_id}/reviews")
-async def get_reviews(listing_id: int):
-    return [r for r in reviews if r["listing_id"] == listing_id]
+async def get_reviews(listing_id: str):
+    data = supabase.table("reviews").select("*").eq("listing_id", listing_id).execute()
+    return data.data
 
 @app.post("/listings/{listing_id}/reviews")
-async def add_review(listing_id: int, review: dict):
+async def add_review(listing_id: str, review: dict):
     review["listing_id"] = listing_id
-    reviews.append(review)
-    return review
+    data = supabase.table("reviews").insert(review).execute()
+    return data.data
 
-# Messages
+# -----------------------
+# MESSAGES
+# -----------------------
 @app.get("/messages/{user_id}")
-async def get_messages(user_id: int):
-    return [m for m in messages if m["to"] == user_id or m["from"] == user_id]
+async def get_messages(user_id: str):
+    data = supabase.table("messages").select("*").or_(f"sender_id.eq.{user_id},receiver_id.eq.{user_id}").execute()
+    return data.data
 
 @app.post("/messages")
 async def send_message(message: dict):
-    messages.append(message)
-    return message
+    data = supabase.table("messages").insert(message).execute()
+    return data.data
 
-# Community Posts
+# -----------------------
+# COMMUNITY POSTS
+# -----------------------
 @app.get("/posts")
 async def get_posts():
-    return posts
+    data = supabase.table("community_posts").select("*").execute()
+    return data.data
 
 @app.get("/posts/{post_id}")
-async def get_post(post_id: int):
-    return next((p for p in posts if p["id"] == post_id), {"error": "Not found"})
+async def get_post(post_id: str):
+    post = supabase.table("community_posts").select("*").eq("id", post_id).execute()
+    if not post.data:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return post.data[0]
 
 @app.post("/posts")
 async def create_post(post: dict):
-    posts.append(post)
-    return post
+    data = supabase.table("community_posts").insert(post).execute()
+    return data.data
 
-# Comments
+# -----------------------
+# COMMENTS
+# -----------------------
 @app.post("/posts/{post_id}/comments")
-async def add_comment(post_id: int, comment: dict):
+async def add_comment(post_id: str, comment: dict):
     comment["post_id"] = post_id
-    comments.append(comment)
-    return comment
+    data = supabase.table("comments").insert(comment).execute()
+    return data.data
 
-if __name__ == '__main__':
-    uvicorn.run('main:app', host='localhost', port=8000, reload=True)
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="localhost", port=8000, reload=True)

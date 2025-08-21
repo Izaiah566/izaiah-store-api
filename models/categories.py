@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from models.base import Base
 
-class CategoryBase(BaseModel):
+class CategoryBase(Base):
     name: str
 
 class Category(CategoryBase):

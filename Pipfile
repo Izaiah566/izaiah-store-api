@@ -9,6 +9,7 @@ uvicorn = "*"
 supabase = "*"
 python-dotenv = "*"
 sqlmodel = "*"
+pydantic = {extras = ["email"], version = "*"}
 
 [dev-packages]
 

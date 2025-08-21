@@ -1,7 +1,7 @@
-from pydantic import BaseModel
 from datetime import datetime
+from models.base import Base
 
-class CommentBase(BaseModel):
+class CommentBase(Base):
     comment_text: str
 
 class CommentCreate(CommentBase):

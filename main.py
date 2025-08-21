@@ -2,7 +2,17 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from supabase import create_client, Client
 from dotenv import load_dotenv
+from fastapi.encoders import jsonable_encoder
 import os
+
+from models.users import User, UserBase, UserCreate
+from models.categories import CategoryBase, Category
+from models.listings import ListingBase, ListingCreate
+from models.orders import Order, OrderBase
+from models.reviews import Review, ReviewBase, ReviewCreate
+from models.messages import Message, MessageBase
+from models.community_posts import Post, PostBase, PostCreate
+from models.comments import Comment, CommentBase, CommentCreate
 
 # Load env variables
 load_dotenv()
@@ -23,7 +33,7 @@ async def root():
 @app.get("/listings")
 async def get_listings():
     data = supabase.table("listings").select("*").execute()
-    return data.data
+    return jsonable_encoder(data.data)
 
 @app.get("/listings/{listing_id}")
 async def get_listing(listing_id: str):

@@ -1,10 +1,11 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import EmailStr
+from models.base import Base
 from datetime import datetime
 
 # -----------------------
 # USERS
 # -----------------------
-class UserBase(BaseModel):
+class UserBase(Base):
     name: str
     email: EmailStr
 

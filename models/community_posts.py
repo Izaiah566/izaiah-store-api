@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+from models.base import Base
 from datetime import datetime
 
-class PostBase(BaseModel):
+class PostBase(Base):
     title: str
     body: str
 

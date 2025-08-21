@@ -1,8 +1,9 @@
-from pydantic import BaseModel, Field
+from models.base import Base
+from sqlmodel import Field
 from typing import Optional
 from datetime import datetime
 
-class ReviewBase(BaseModel):
+class ReviewBase(Base):
     rating: int = Field(..., ge=1, le=5)
     review_text: Optional[str] = None
 

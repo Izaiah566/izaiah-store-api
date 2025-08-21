@@ -1,7 +1,7 @@
-from pydantic import BaseModel, Field
+from models.base import Base
 from datetime import datetime
 
-class MessageBase(BaseModel):
+class MessageBase(Base):
     sender_id: int
     receiver_id: int
     content: str

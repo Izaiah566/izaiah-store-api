@@ -7,7 +7,7 @@ import os
 
 from models.users import User, UserBase, UserCreate
 from models.categories import CategoryBase, Category
-from models.listings import ListingBase, ListingCreate
+from models.listings import ListingBase, ListingCreate, Listing
 from models.orders import Order, OrderBase
 from models.reviews import Review, ReviewBase, ReviewCreate
 from models.messages import Message, MessageBase
@@ -30,17 +30,17 @@ async def root():
 # -----------------------
 # LISTINGS
 # -----------------------
-@app.get("/listings")
+@app.get("/listings", response_model=list[Listing])
 async def get_listings():
     data = supabase.table("listings").select("*").execute()
-    return jsonable_encoder(data.data)
+    return jsonable_encoder(data.data) # ensures correct JSON types
 
-@app.get("/listings/{listing_id}")
-async def get_listing(listing_id: str):
+@app.get("/listings/{listing_id}", response_model=Listing)
+async def get_listing(listing_id: int):
     data = supabase.table("listings").select("*").eq("id", listing_id).execute()
     if not data.data:
         raise HTTPException(status_code=404, detail="Listing not found")
-    return data.data[0]
+    return jsonable_encoder(data.data[0])
 
 @app.post("/listings")
 async def create_listing(listing: dict):
@@ -48,12 +48,12 @@ async def create_listing(listing: dict):
     return data.data
 
 @app.put("/listings/{listing_id}")
-async def update_listing(listing_id: str, updates: dict):
+async def update_listing(listing_id: int, updates: dict):
     data = supabase.table("listings").update(updates).eq("id", listing_id).execute()
     return data.data
 
 @app.delete("/listings/{listing_id}")
-async def delete_listing(listing_id: str):
+async def delete_listing(listing_id: int):
     supabase.table("listings").delete().eq("id", listing_id).execute()
     return {"message": "Listing deleted"}
 

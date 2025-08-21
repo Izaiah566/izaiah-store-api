@@ -15,7 +15,7 @@ class ListingCreate(ListingBase):
 
 class Listing(ListingBase):
     id: int
-    created_at: datetime
+    created_at: Optional[str]
 
     class Config:
         orm_mode = True

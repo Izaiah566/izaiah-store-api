@@ -32,8 +32,10 @@ async def root():
 # -----------------------
 @app.get("/listings", response_model=list[Listing])
 async def get_listings():
-    data = supabase.table("listings").select("*").execute()
-    return jsonable_encoder(data.data) # ensures correct JSON types
+    result = supabase.table("listings").select("*").execute()
+    print(result)  # log the raw response
+    return result.data
+
 
 @app.get("/listings/{listing_id}", response_model=Listing)
 async def get_listing(listing_id: int):
